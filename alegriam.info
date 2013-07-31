@@ -6,18 +6,23 @@ dependencies[] = taxonomy
 dependencies[] = image
 dependencies[] = comment
 dependencies[] = migrate
+dependencies[] = migrate_extras
 dependencies[] = list
 dependencies[] = number
 dependencies[] = references
 dependencies[] = pathauto
+dependencies[] = date_migrate
+dependencies[] = date
 
 ;node_reference is useful but not required
 ;dependencies[] = node_reference
 
 files[] = alegriam.module
+files[] = UserMigration.inc
+files[] = EventMigration.inc
 ;files[] = HoofdstukkenMigration.inc
 ;files[] = VragenMigration.inc
-files[] = UserMigration.inc
+
 ;files[] = UserRoleMigration.inc
 ;files[] = QuestionMigration.inc
 ;files[] = wine.inc
