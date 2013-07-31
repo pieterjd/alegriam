@@ -32,15 +32,7 @@ class EventMigration extends Migration {
 		//$db_prefix = 'drupal_';
 		//IMPORTANT: REMOVE http:// from host string!!!!
 		
-		//remote database information
-		Database::addConnectionInfo('for_migration', 'default', array(
-			'driver' => 'mysql',
-			'database' => 'alegria',
-			'username' => 'alegria',
-			'password' => 'my08ens1al',
-			'host' => 'mysql.webnet4u.be',
-			'prefix' => 'drupal_',
-		));
+		
 		
 		//dpm('event migration called');
 		
@@ -95,9 +87,17 @@ class EventMigration extends Migration {
 		$this->addFieldMapping('status','published');
 		$this->addFieldMapping('promote')->defaultValue(0);
 		$this->addFieldMapping('sticky')->defaultValue(0);
-		$this->addFieldMapping('is_new')->defaultValue(0);
-		$this->addFieldMapping('body','body');
-		$this->addFieldMapping('field_date','startdate');
+		//$this->addFieldMapping('is_new')->defaultValue(0);
+		$this->addFieldMapping('body','body')
+			->arguments(
+				array(
+					'format' => 'filtered_html',
+				)
+			);
+		//next line does not work
+		//$this->addFieldMapping('field_date','startdate');
+		// check https://drupal.org/node/1806296#comment-6589830 for info
+		$this->addFieldMapping( 'field_date', 'datespan' );
 		/*
 		
 		
@@ -108,6 +108,7 @@ class EventMigration extends Migration {
 		//skip these source fields
 		$this->addUnmigratedSources(
 			array(
+				'startdate',
 				'enddate',
 				'term',
 				'locationname',
@@ -132,6 +133,7 @@ class EventMigration extends Migration {
 				'path',
 				'comment',
 				'pathauto',
+				'is_new',
 				
 				
 			)
@@ -140,7 +142,18 @@ class EventMigration extends Migration {
     
     
 	}
-
-
+	//as suggested in https://drupal.org/node/1806296#comment-6589830
+	public function prepareRow($row) {
+		//for some reason, 2 hours have to be added
+		$row->startdate = strtotime("+2 hours",$row->startdate);
+		$row->enddate = strtotime("+2 hours",$row->enddate);
+		$row->datespan = drupal_json_encode(array(
+			'from' 	=> $row->startdate,
+			'to' 	=> $row->enddate
+		));
+		//change linebreaks back to newlines
+		$row->body = str_replace('<br/>',"\n",$row->body);
+		
+	}
 
 }
