@@ -20,6 +20,7 @@ dependencies[] = date
 files[] = alegriam.module
 files[] = UserMigration.inc
 files[] = EventMigration.inc
+;files[] = EventTaxMigration.inc
 ;files[] = HoofdstukkenMigration.inc
 ;files[] = VragenMigration.inc
 

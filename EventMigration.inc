@@ -98,6 +98,12 @@ class EventMigration extends Migration {
 		//$this->addFieldMapping('field_date','startdate');
 		// check https://drupal.org/node/1806296#comment-6589830 for info
 		$this->addFieldMapping( 'field_date', 'datespan' );
+		
+		$this->addFieldMapping('field_text_location','LocationName');
+		
+		$this->addFieldMapping('field_event_term','term');
+		$this->addFieldMapping('field_event_term:create_term')
+			->defaultValue(TRUE);
 		/*
 		
 		
@@ -130,10 +136,13 @@ class EventMigration extends Migration {
 				'body:summary',
 				'body:format',
 				'body:language',
+				'field_text_location:language',
 				'path',
 				'comment',
 				'pathauto',
 				'is_new',
+				'field_event_term:source_type',
+				'field_event_term:ignore_case',
 				
 				
 			)
@@ -155,5 +164,32 @@ class EventMigration extends Migration {
 		$row->body = str_replace('<br/>',"\n",$row->body);
 		
 	}
+	/*
+	//before saving destination object, let's add the term
+	public function prepare($entity, stdClass $row){
+		//retrieve the vocabulary
+		$voc = taxonomy_vocabulary_machine_name_load('event_tags');
+		if(empty($voc)){
+			//voc does not exist yet, let's create it
+			$voc = (object) array(
+					'name' => 'Event tags',
+					'machine_name' => 'event_tags',
+					'hierachy' => 0, //Cf https://api.drupal.org/comment/46183#comment-46183
+			);
+			taxonomy_vocabulary_save($voc);
+		}
+		$term = taxonomy_get_term_by_name($row->term);
+		if(empty($term)){
+			//term does not exist yet, let's create it
+			$event_term = (object) array(
+					'vid' => $voc->vid,
+					'name' => $row->term,
+			);
+
+			taxonomy_term_save($event_term);
+		}
+	
+	}
+	*/
 
 }
