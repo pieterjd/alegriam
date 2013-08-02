@@ -18,7 +18,8 @@ class EventMigration extends Migration {
 		);
 		$this->description = t('Migrate events from the source database to drupal users');
 		
-		
+		//dependency on user migration
+		//$this->dependencies = array('User');
 		
 		//blogpost of using migrate module from D6 to D7
 		//http://dtek.net/blog/drupal-6-to-drupal-7-via-migrate-2
@@ -97,6 +98,7 @@ class EventMigration extends Migration {
 		//next line does not work
 		//$this->addFieldMapping('field_date','startdate');
 		// check https://drupal.org/node/1806296#comment-6589830 for info
+		//datespan is a dummy field on the source side
 		$this->addFieldMapping( 'field_date', 'datespan' );
 		
 		$this->addFieldMapping('field_text_location','LocationName');
@@ -143,6 +145,7 @@ class EventMigration extends Migration {
 				'is_new',
 				'field_event_term:source_type',
 				'field_event_term:ignore_case',
+				'field_location',
 				
 				
 			)
@@ -163,33 +166,33 @@ class EventMigration extends Migration {
 		//change linebreaks back to newlines
 		$row->body = str_replace('<br/>',"\n",$row->body);
 		
+		
 	}
-	/*
-	//before saving destination object, let's add the term
-	public function prepare($entity, stdClass $row){
-		//retrieve the vocabulary
-		$voc = taxonomy_vocabulary_machine_name_load('event_tags');
-		if(empty($voc)){
-			//voc does not exist yet, let's create it
-			$voc = (object) array(
-					'name' => 'Event tags',
-					'machine_name' => 'event_tags',
-					'hierachy' => 0, //Cf https://api.drupal.org/comment/46183#comment-46183
-			);
-			taxonomy_vocabulary_save($voc);
-		}
-		$term = taxonomy_get_term_by_name($row->term);
-		if(empty($term)){
-			//term does not exist yet, let's create it
-			$event_term = (object) array(
-					'vid' => $voc->vid,
-					'name' => $row->term,
-			);
-
-			taxonomy_term_save($event_term);
-		}
 	
+	public function prepare($entity,stdClass $row){
+		//try to add location
+		$keywords = array('Claes','Hand','Roose','Kerk','Torenhof','Harmonie');
+		foreach($keywords as $key){
+			if(stristr($row->locationname,$key)){
+				//found $key in locationname of current row
+				dsm("found $key in locationname");
+				//now look for corresponding location node on destination side
+				$loc_query = new EntityFieldQuery();
+				$locations = $loc_query->entityCondition('entity_type', 'node')
+								->propertyCondition('type', 'location')
+								->propertyCondition('title','%'.$key.'%','LIKE')
+								->execute();
+				
+				if(!empty($locations)){
+					$locations = node_load(array_shift(array_keys($locations['node'])));
+					dsm($locations);
+					$entity->field_location = $locations;
+				}
+				
+			}
+			
+		}
 	}
-	*/
+	
 
 }
