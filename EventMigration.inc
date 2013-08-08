@@ -171,22 +171,34 @@ class EventMigration extends Migration {
 	
 	public function prepare($entity,stdClass $row){
 		//try to add location
-		$keywords = array('Claes','Hand','Roose','Kerk','Torenhof','Harmonie');
+		$keywords = array('Claes','Hand','Roose','Kerk','Torenhof','harmonie');
 		foreach($keywords as $key){
 			if(stristr($row->locationname,$key)){
 				//found $key in locationname of current row
-				dsm("found $key in locationname");
+				// dsm("found $key in locationname");
 				//now look for corresponding location node on destination side
-				$loc_query = new EntityFieldQuery();
-				$locations = $loc_query->entityCondition('entity_type', 'node')
-								->propertyCondition('type', 'location')
-								->propertyCondition('title','%'.$key.'%','LIKE')
-								->execute();
+				$loc_query = db_select('node','n')
+					->fields('n')
+					->condition('n.type','location')
+					->condition('n.title','%'.$key.'%','LIKE'); //MYSQL's like is case insensitive
+				// dpm((string)$loc_query);
+				// dpm($loc_query->arguments());
+					
+				$locations = $loc_query->execute();
 				
 				if(!empty($locations)){
-					$locations = node_load(array_shift(array_keys($locations['node'])));
-					dsm($locations);
-					$entity->field_location = $locations;
+					// dsm('location found!');
+					// dpm($locations);
+					dpm($entity);
+					foreach($locations as $loc){
+						//target_id is specific for entity reference
+						// cf https://drupal.org/node/1845986
+						$entity->field_location['und'][0]['target_id'] = $loc->nid;
+					}
+					dpm($entity);
+					// $locations = node_load(array_shift(array_keys($locations['node'])));
+					// dsm($locations);
+					// $entity->field_location = $locations;
 				}
 				
 			}
